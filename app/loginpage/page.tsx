@@ -16,7 +16,7 @@ export default function LoginPage() {
           </nav>
           <div className="flex items-center gap-2">
             <a href="/loginpage" className="rounded-full px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100">Login</a>
-            <a href="#" className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Sign Up</a>
+            <a href="/signuppage" className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Sign Up</a>
           </div>
         </div>
       </header>
@@ -56,7 +56,7 @@ export default function LoginPage() {
               </div>
               <button type="button" className="h-10 w-full rounded-full bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700">Sign In</button>
               <div className="text-center text-sm text-zinc-600">
-                Don't have an account? <a href="#" className="text-blue-600 hover:underline">Sign up</a>
+                Don't have an account? <a href="/signuppage" className="text-blue-600 hover:underline">Sign up</a>
               </div>
             </form>
           </div>
