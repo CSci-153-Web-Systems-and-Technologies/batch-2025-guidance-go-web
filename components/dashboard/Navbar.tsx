@@ -1,6 +1,9 @@
 "use client";
 
 import { Bell, ChevronDown } from "lucide-react";
+import Image from "next/image";
+import { LogoImage } from "../ui/Logo";
+import Link from "next/link";
 
 export function Navbar() {
   return (
@@ -9,11 +12,13 @@ export function Navbar() {
         {/* Left: Brand + Nav */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-blue-500" />
+            <div className="relative h-8 w-8 rounded-full bg-white overflow-hidden ring-2 ring-blue-500">
+              <LogoImage fill sizes="32px" className="object-contain" priority />
+            </div>
             <span className="font-semibold text-blue-600">GuidanceGo</span>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <a className="text-zinc-700 hover:text-black" href="#">Home</a>
+            <Link className="text-zinc-700 hover:text-black" href="/">Home</Link>
             <a className="text-zinc-700 hover:text-black" href="#">About</a>
             <a className="text-zinc-700 hover:text-black" href="#">Services</a>
             <a className="text-zinc-700 hover:text-black" href="#">Contact</a>
@@ -28,7 +33,7 @@ export function Navbar() {
             <span className="absolute right-1 top-1 inline-block h-2 w-2 rounded-full bg-primary" />
           </button>
           <button className="flex items-center gap-3 rounded-full border px-3 py-2 hover:bg-muted transition-colors">
-            <div className="h-8 w-8 rounded-full bg-muted" />
+            <div className="h-8 w-8 rounded-full bg-white" />
             <div className="hidden sm:block text-left">
               <div className="text-sm font-medium text-black">Sarah Johnson</div>
               <div className="text-xs text-zinc-700">Student</div>

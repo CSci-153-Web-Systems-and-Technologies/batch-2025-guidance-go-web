@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { LogoImage } from "../components/ui/Logo";
 
 export default function Home() {
   return (
@@ -7,7 +8,7 @@ export default function Home() {
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="GuidanceGo logo" width={32} height={32} priority className="rounded" />
+            <LogoImage width={32} height={32} priority className="rounded" />
             <span className="text-lg font-semibold text-zinc-900">GuidanceGo</span>
           </div>
           <nav className="hidden gap-6 text-sm text-zinc-700 sm:flex">
@@ -28,7 +29,7 @@ export default function Home() {
         <div className="flex h-[420px] w-full items-center justify-center">
           <div className="text-center">
             <div className="mx-auto mb-4">
-              <Image src="/logo.png" alt="GuidanceGo logo" width={120} height={120} priority className="mx-auto" />
+              <LogoImage width={120} height={120} priority className="mx-auto" />
             </div>
             <h1 className="text-5xl font-bold text-blue-600">GuidanceGo</h1>
             <p className="mt-2 text-lg text-zinc-600">Fast &amp; Secure Counseling Scheduler</p>
