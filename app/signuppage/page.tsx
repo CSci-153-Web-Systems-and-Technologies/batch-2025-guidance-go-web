@@ -1,4 +1,4 @@
-export default function Home() {
+export default function SignupPage() {
   return (
     <div className="grid min-h-screen grid-rows-[auto,1fr,auto] bg-zinc-50">
       {/* Navbar */}
@@ -9,7 +9,7 @@ export default function Home() {
             <span className="text-lg font-semibold text-zinc-900">GuidanceGo</span>
           </div>
           <nav className="hidden gap-6 text-sm text-zinc-700 sm:flex">
-            <a href="#" className="hover:text-zinc-900">Home</a>
+            <a href="/" className="hover:text-zinc-900">Home</a>
             <a href="#" className="hover:text-zinc-900">About</a>
             <a href="#" className="hover:text-zinc-900">Services</a>
             <a href="#" className="hover:text-zinc-900">Contact</a>
@@ -21,9 +21,9 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero */}
+      {/* Hero + Signup Card */}
       <main className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center px-6 py-16">
-        <div className="flex h-[420px] w-full items-center justify-center">
+        <div className="flex w-full items-center justify-center">
           <div className="text-center">
             <div className="mx-auto mb-4 h-24 w-24 rounded-full border-4 border-blue-600" />
             <h1 className="text-5xl font-bold text-blue-600">GuidanceGo</h1>
@@ -31,12 +31,37 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Quick Access Buttons */}
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/dashboard">Open Dashboard</a>
-          <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/studentappointmentdetailspage">Appointment Details</a>
-          <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/studentbookappointmentpage">Book Appointment</a>
-          <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/counselor-dashboard">Counselor Dashboard</a>
+        <div className="mt-8 w-full max-w-sm">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 text-center">
+              <div className="mx-auto h-10 w-10 rounded-full bg-blue-50 text-blue-600">📝</div>
+              <h2 className="mt-2 text-xl font-semibold text-zinc-900">Hello</h2>
+              <p className="text-sm text-zinc-500">Sign up for your account</p>
+            </div>
+            <form className="space-y-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700">Name</label>
+                <input type="text" placeholder="Your name" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700">Email</label>
+                <input type="email" placeholder="you@example.com" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700">Password</label>
+                <input type="password" placeholder="Create a password" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring" />
+              </div>
+              <button type="button" className="h-10 w-full rounded-full bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700">Create account</button>
+              <div className="text-center text-sm text-zinc-600">Or sign up with</div>
+              <div className="flex gap-2">
+                <button type="button" className="h-10 flex-1 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Microsoft</button>
+                <button type="button" className="h-10 flex-1 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Google</button>
+              </div>
+              <div className="text-center text-sm text-zinc-600">
+                Already have an account? <a href="/loginpage" className="text-blue-600 hover:underline">Sign in</a>
+              </div>
+            </form>
+          </div>
         </div>
       </main>
 
