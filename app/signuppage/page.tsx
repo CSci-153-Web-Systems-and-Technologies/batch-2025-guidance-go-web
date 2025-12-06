@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function SignupPage() {
   return (
     <div className="grid min-h-screen grid-rows-[auto,1fr,auto] bg-zinc-50">
@@ -5,7 +7,7 @@ export default function SignupPage() {
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full border-2 border-blue-600" />
+            <Image src="/logo.png" alt="GuidanceGo logo" width={32} height={32} priority className="rounded" />
             <span className="text-lg font-semibold text-zinc-900">GuidanceGo</span>
           </div>
           <nav className="hidden gap-6 text-sm text-zinc-700 sm:flex">
@@ -25,7 +27,9 @@ export default function SignupPage() {
       <main className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center px-6 py-16">
         <div className="flex w-full items-center justify-center">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-24 w-24 rounded-full border-4 border-blue-600" />
+            <div className="mx-auto mb-4">
+              <Image src="/logo.png" alt="GuidanceGo logo" width={120} height={120} priority className="mx-auto" />
+            </div>
             <h1 className="text-5xl font-bold text-blue-600">GuidanceGo</h1>
             <p className="mt-2 text-lg text-zinc-600">Fast &amp; Secure Counseling Scheduler</p>
           </div>
