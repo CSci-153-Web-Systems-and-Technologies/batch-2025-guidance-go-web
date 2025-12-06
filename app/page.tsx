@@ -15,8 +15,8 @@ export default function Home() {
             <a href="#" className="hover:text-zinc-900">Contact</a>
           </nav>
           <div className="flex items-center gap-2">
-            <a href="#" className="rounded-full px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100">Login</a>
-            <a href="#" className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Sign Up</a>
+            <a href="/loginpage" className="rounded-full px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100">Login</a>
+            <a href="/signuppage" className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Sign Up</a>
           </div>
         </div>
       </header>
