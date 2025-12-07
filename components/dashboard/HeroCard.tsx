@@ -16,7 +16,7 @@ export function HeroCard() {
               need with our secure platform.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <a className="rounded-md bg-blue-600 px-5 py-2.5 text-white hover:bg-blue-700" href="#">Get Started</a>
+              <a className="rounded-md bg-blue-600 px-5 py-2.5 text-white hover:bg-blue-700" href="/studentbookappointmentpage">Get Started</a>
               <a className="rounded-md border border-blue-200 px-5 py-2.5 text-blue-600 hover:bg-blue-50" href="#">Learn More</a>
             </div>
           </div>
