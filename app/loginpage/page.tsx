@@ -1,6 +1,29 @@
+"use client";
 import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "../../lib/supabase";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  async function handleSignIn() {
+    setLoading(true);
+    setErrorMsg(null);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) {
+      setErrorMsg(error.message);
+      return;
+    }
+    // TODO: check user role from your database/profile table.
+    // For now, redirect students to student dashboard.
+    router.push("/student-dashboard");
+  }
   return (
     <div className="grid min-h-screen grid-rows-[auto,1fr,auto] bg-zinc-50">
       {/* Navbar */}
@@ -45,11 +68,11 @@ export default function LoginPage() {
             <form className="space-y-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-700">Email</label>
-                <input type="email" placeholder="you@example.com" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring" />
+                <input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-700">Password</label>
-                <input type="password" placeholder="••••••••" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring" />
+                <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring" />
               </div>
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 text-sm text-zinc-700">
@@ -58,7 +81,10 @@ export default function LoginPage() {
                 </label>
                 <a href="#" className="text-sm text-blue-600 hover:underline">Forgot password?</a>
               </div>
-              <button type="button" className="h-10 w-full rounded-full bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700">Sign In</button>
+              {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
+              <button type="button" onClick={handleSignIn} disabled={loading} className="h-10 w-full rounded-full bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-60">
+                {loading ? "Signing In..." : "Sign In"}
+              </button>
               <div className="text-center text-sm text-zinc-600">
                 Don't have an account? <a href="/signuppage" className="text-blue-600 hover:underline">Sign up</a>
               </div>
