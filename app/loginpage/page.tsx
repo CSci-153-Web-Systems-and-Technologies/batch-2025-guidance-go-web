@@ -38,9 +38,9 @@ export default function LoginPage() {
           </div>
           <nav className="hidden gap-6 text-sm text-zinc-700 sm:flex">
             <a href="/" className="hover:text-zinc-900">Home</a>
-            <a href="#" className="hover:text-zinc-900">About</a>
-            <a href="#" className="hover:text-zinc-900">Services</a>
-            <a href="#" className="hover:text-zinc-900">Contact</a>
+            <a href="/aboutpage" className="hover:text-zinc-900">About</a>
+            <a href="/servicespage" className="hover:text-zinc-900">Services</a>
+            <a href="/contactpage" className="hover:text-zinc-900">Contact</a>
           </nav>
           <div className="flex items-center gap-2">
             <a href="/loginpage" className="rounded-full px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100">Login</a>

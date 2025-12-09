@@ -19,9 +19,9 @@ export function Navbar() {
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <Link className="text-zinc-700 hover:text-black" href="/">Home</Link>
-            <a className="text-zinc-700 hover:text-black" href="#">About</a>
-            <a className="text-zinc-700 hover:text-black" href="#">Services</a>
-            <a className="text-zinc-700 hover:text-black" href="#">Contact</a>
+            <Link className="text-zinc-700 hover:text-black" href="/aboutpage">About</Link>
+            <Link className="text-zinc-700 hover:text-black" href="/servicespage">Services</Link>
+            <Link className="text-zinc-700 hover:text-black" href="/contactpage">Contact</Link>
           </nav>
         </div>
 
