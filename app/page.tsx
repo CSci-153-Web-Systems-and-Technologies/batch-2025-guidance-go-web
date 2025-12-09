@@ -38,7 +38,7 @@ export default function Home() {
 
         {/* Quick Access Buttons */}
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/dashboard">Open Dashboard</a>
+          <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/student-dashboard">Open Dashboard</a>
           <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/studentappointmentdetailspage">Appointment Details</a>
           <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/studentbookappointmentpage">Book Appointment</a>
           <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/counselor-dashboard">Counselor Dashboard</a>
