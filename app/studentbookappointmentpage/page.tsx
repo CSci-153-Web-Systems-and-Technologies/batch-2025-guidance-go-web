@@ -19,14 +19,17 @@ export default function StudentBookAppointmentPage() {
           </SectionCard>
         </div>
       </div>
-      <footer className="border-t bg-white px-6 py-6 text-sm text-zinc-500">
-        <div className="grid grid-cols-12 gap-6">
+      <footer className="border-t bg-[#0b1220] px-6 py-10 text-sm text-zinc-300">
+        <div className="mx-auto grid max-w-6xl grid-cols-12 gap-6">
           <div className="col-span-12 md:col-span-3">
-            <div className="font-semibold text-zinc-900">GuidanceGo</div>
-            <p>Professional counseling services made accessible and convenient for everyone.</p>
+            <div className="flex items-center gap-2 text-zinc-100">
+              <div className="h-7 w-7 rounded-full border-2 border-blue-500" />
+              <span className="font-semibold">GuidanceGo</span>
+            </div>
+            <p className="mt-2 text-zinc-400">Professional counseling services made accessible and convenient for everyone.</p>
           </div>
           <div className="col-span-6 md:col-span-3">
-            <div className="font-semibold text-zinc-900">Quick Links</div>
+            <div className="font-semibold text-zinc-100">Quick Links</div>
             <ul className="mt-2 space-y-1">
               <li>Home</li>
               <li>About</li>
@@ -35,7 +38,7 @@ export default function StudentBookAppointmentPage() {
             </ul>
           </div>
           <div className="col-span-6 md:col-span-3">
-            <div className="font-semibold text-zinc-900">Legal</div>
+            <div className="font-semibold text-zinc-100">Legal</div>
             <ul className="mt-2 space-y-1">
               <li>Terms of Service</li>
               <li>Privacy Policy</li>
@@ -43,7 +46,7 @@ export default function StudentBookAppointmentPage() {
             </ul>
           </div>
           <div className="col-span-12 md:col-span-3">
-            <div className="font-semibold text-zinc-900">Contact</div>
+            <div className="font-semibold text-zinc-100">Contact</div>
             <ul className="mt-2 space-y-1">
               <li>support@guidancego.com</li>
               <li>1-800-GUIDANCE</li>
@@ -51,7 +54,7 @@ export default function StudentBookAppointmentPage() {
             </ul>
           </div>
         </div>
-        <div className="mt-6 text-center">© 2024 GuidanceGo. All rights reserved.</div>
+        <div className="mx-auto mt-6 max-w-6xl text-center text-zinc-400">© 2024 GuidanceGo. All rights reserved.</div>
       </footer>
     </div>
   );
