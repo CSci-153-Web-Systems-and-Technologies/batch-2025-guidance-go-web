@@ -39,37 +39,43 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-8">
-      <HeroCard />
-
-      <div className="mx-auto max-w-[1200px]">
-        <NextAppointmentCard appointment={nextAppointment} />
-      </div>
-
-      <SectionCard title="Welcome back, Sarah!" subtitle="You have 2 upcoming appointments this week" right={<div className="text-sm text-muted">Today<br />March 15, 2024</div>}>
-        <div className="grid gap-6 md:grid-cols-[1.2fr_1fr]">
-          <NextAppointmentCard appointment={nextAppointment} compact />
-          <CalendarWidget />
+    <div className="space-y-10">
+      {/* Outer container to match mock: rounded, bordered, subtle shadow */}
+      <section className="mx-auto w-full max-w-6xl rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+        {/* Welcome + Calendar */}
+        <div className="grid gap-8 md:grid-cols-[1.2fr_1fr]">
+          <div>
+            <h2 className="mb-4 text-lg font-semibold text-zinc-900">Welcome back, Sarah!</h2>
+            <NextAppointmentCard appointment={nextAppointment} compact />
+          </div>
+          <div>
+            <h3 className="mb-4 text-lg font-semibold text-zinc-900">March 2024</h3>
+            <CalendarWidget />
+          </div>
         </div>
-      </SectionCard>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <SectionCard title="Upcoming Appointments">
-          <UpcomingAppointmentsList items={upcoming} />
-        </SectionCard>
+        {/* Two columns below: Upcoming + Available, and Quick Actions + Recent Messages */}
+        <div className="mt-8 grid gap-8 md:grid-cols-2">
+          <div className="space-y-8">
+            <SectionCard title="Upcoming Appointments">
+              <UpcomingAppointmentsList items={upcoming} />
+            </SectionCard>
 
-        <SectionCard title="Available Now">
-          <AvailableCounselorsList items={availableNow} />
-        </SectionCard>
+            <SectionCard title="Quick Actions">
+              <QuickActionsGrid actions={quickActions} />
+            </SectionCard>
+          </div>
+          <div className="space-y-8">
+            <SectionCard title="Available Now">
+              <AvailableCounselorsList items={availableNow} />
+            </SectionCard>
 
-        <SectionCard title="Quick Actions">
-          <QuickActionsGrid actions={quickActions} />
-        </SectionCard>
-      </div>
-
-      <SectionCard title="Recent Messages">
-        <RecentMessages items={messages} />
-      </SectionCard>
+            <SectionCard title="Recent Messages">
+              <RecentMessages items={messages} />
+            </SectionCard>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

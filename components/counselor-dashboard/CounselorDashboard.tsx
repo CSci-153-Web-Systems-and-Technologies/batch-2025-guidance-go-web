@@ -31,7 +31,7 @@ export function CounselorDashboard() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* Page title banner */}
       <section className="rounded-2xl border bg-gradient-to-b from-white to-zinc-50 p-8">
         <h1 className="text-2xl md:text-3xl font-bold text-center">Counselor Dashboard</h1>
@@ -39,21 +39,21 @@ export function CounselorDashboard() {
       </section>
 
       {/* Main two-column section */}
-      <section className="rounded-2xl border bg-white p-4 md:p-6">
-        <div className="grid gap-6 md:grid-cols-[1.2fr_1fr]">
+      <section className="rounded-2xl border bg-white p-6 md:p-8">
+        <div className="grid gap-8 md:grid-cols-[1.2fr_1fr]">
           <div>
             <SessionList items={pending} title="Pending Appointments" />
           </div>
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div>
               <h2 className="text-lg font-semibold">Schedule Calendar</h2>
-              <div className="mt-3">
+              <div className="mt-4">
                 <CalendarWidget />
               </div>
             </div>
             <div>
               <h2 className="text-lg font-semibold">Today's Overview</h2>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="mt-4 grid grid-cols-2 gap-4">
                 <StatsCard title="Pending" value={3} accent="blue" />
                 <StatsCard title="Scheduled" value={5} accent="green" />
               </div>
