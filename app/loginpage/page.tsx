@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/supabase";
+import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,15 +14,18 @@ export default function LoginPage() {
   async function handleSignIn() {
     setLoading(true);
     setErrorMsg(null);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      setErrorMsg(error.message);
-      return;
+    try {
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      // TODO: check user role from your database/profile table.
+      // For now, redirect students to student dashboard.
+      router.push("/student-dashboard");
+    } catch (err: any) {
+      setErrorMsg(err?.message ?? "Unable to sign in.");
+    } finally {
+      setLoading(false);
     }
-    // TODO: check user role from your database/profile table.
-    // For now, redirect students to student dashboard.
-    router.push("/student-dashboard");
   }
   return (
     <div className="grid min-h-screen grid-rows-[auto,1fr,auto] bg-zinc-50">
@@ -81,8 +84,14 @@ export default function LoginPage() {
                 </label>
                 <a href="#" className="text-sm text-blue-600 hover:underline">Forgot password?</a>
               </div>
+              {!isSupabaseConfigured && (
+                <div className="text-sm text-red-600">
+                  Supabase is not configured. Ask your teammate for the .env settings, or set
+                  NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in a .env.local file.
+                </div>
+              )}
               {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
-              <button type="button" onClick={handleSignIn} disabled={loading} className="h-10 w-full rounded-full bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-60">
+              <button type="button" onClick={handleSignIn} disabled={loading || !isSupabaseConfigured} className="h-10 w-full rounded-full bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-60">
                 {loading ? "Signing In..." : "Sign In"}
               </button>
               <div className="text-center text-sm text-zinc-600">
