@@ -1,6 +1,6 @@
 import { SessionList } from "./SessionList";
 import { StatsCard } from "./StatsCard";
-import { CalendarWidget } from "../dashboard/CalendarWidget";
+import { CalendarWidget } from "../student-dashboard/CalendarWidget";
 
 export function CounselorDashboard() {
   const pending = [

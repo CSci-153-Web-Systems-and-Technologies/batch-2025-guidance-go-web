@@ -1,11 +1,11 @@
-import { HeroCard } from "../../components/dashboard/HeroCard";
-import { NextAppointmentCard } from "../../components/dashboard/NextAppointmentCard";
-import { CalendarWidget } from "../../components/dashboard/CalendarWidget";
-import { SectionCard } from "../../components/dashboard/SectionCard";
-import { UpcomingAppointmentsList } from "../../components/dashboard/UpcomingAppointmentsList";
-import { AvailableCounselorsList } from "../../components/dashboard/AvailableCounselorsList";
-import { QuickActionsGrid } from "../../components/dashboard/QuickActionsGrid";
-import { RecentMessages } from "../../components/dashboard/RecentMessages";
+import { HeroCard } from "../../components/student-dashboard/HeroCard";
+import { NextAppointmentCard } from "../../components/student-dashboard/NextAppointmentCard";
+import { CalendarWidget } from "../../components/student-dashboard/CalendarWidget";
+import { SectionCard } from "../../components/student-dashboard/SectionCard";
+import { UpcomingAppointmentsList } from "../../components/student-dashboard/UpcomingAppointmentsList";
+import { AvailableCounselorsList } from "../../components/student-dashboard/AvailableCounselorsList";
+import { QuickActionsGrid } from "../../components/student-dashboard/QuickActionsGrid";
+import { RecentMessages } from "../../components/student-dashboard/RecentMessages";
 
 export default function DashboardPage() {
   const nextAppointment = {

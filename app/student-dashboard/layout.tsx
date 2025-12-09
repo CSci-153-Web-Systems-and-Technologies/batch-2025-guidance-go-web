@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Navbar } from "../../components/dashboard/Navbar";
-import { Sidebar } from "../../components/dashboard/Sidebar";
+import { Navbar } from "../../components/student-dashboard/Navbar";
+import { Sidebar } from "../../components/student-dashboard/Sidebar";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (

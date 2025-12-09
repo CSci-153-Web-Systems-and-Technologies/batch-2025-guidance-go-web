@@ -1,6 +1,6 @@
-import { Navbar } from "../../components/dashboard/Navbar";
-import { Sidebar } from "../../components/dashboard/Sidebar";
-import { SectionCard } from "../../components/dashboard/SectionCard";
+import { Navbar } from "../../components/student-dashboard/Navbar";
+import { Sidebar } from "../../components/student-dashboard/Sidebar";
+import { SectionCard } from "../../components/student-dashboard/SectionCard";
 import { BookingForm } from "../../components/studentbookappointmentpage/BookingForm";
 
 export default function StudentBookAppointmentPage() {

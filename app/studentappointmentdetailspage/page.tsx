@@ -1,12 +1,12 @@
-import { Navbar } from "../../components/dashboard/Navbar";
-import { Sidebar } from "../../components/dashboard/Sidebar";
-import { HeroCard } from "../../components/dashboard/HeroCard";
-import { NextAppointmentCard } from "../../components/dashboard/NextAppointmentCard";
-import { SectionCard } from "../../components/dashboard/SectionCard";
-import { CalendarWidget } from "../../components/dashboard/CalendarWidget";
-import { UpcomingAppointmentsList } from "../../components/dashboard/UpcomingAppointmentsList";
-import { QuickActionsGrid } from "../../components/dashboard/QuickActionsGrid";
-import { RecentMessages } from "../../components/dashboard/RecentMessages";
+import { Navbar } from "../../components/student-dashboard/Navbar";
+import { Sidebar } from "../../components/student-dashboard/Sidebar";
+import { HeroCard } from "../../components/student-dashboard/HeroCard";
+import { NextAppointmentCard } from "../../components/student-dashboard/NextAppointmentCard";
+import { SectionCard } from "../../components/student-dashboard/SectionCard";
+import { CalendarWidget } from "../../components/student-dashboard/CalendarWidget";
+import { UpcomingAppointmentsList } from "../../components/student-dashboard/UpcomingAppointmentsList";
+import { QuickActionsGrid } from "../../components/student-dashboard/QuickActionsGrid";
+import { RecentMessages } from "../../components/student-dashboard/RecentMessages";
 
 export default function StudentAppointmentDetailsPage() {
   const appointment = {
