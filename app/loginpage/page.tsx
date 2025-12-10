@@ -20,8 +20,36 @@ export default function LoginPage() {
       const supabase = getSupabaseClient();
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      // TODO: check user role from your database/profile table.
-      // For now, redirect students to student dashboard.
+      const userId = data.user?.id;
+      if (!userId) throw new Error("No user session after sign in.");
+
+      // Ensure profile row exists; create it on first login if missing.
+      const { data: existing, error: selErr } = await supabase
+        .from("students")
+        .select("student_id")
+        .eq("auth_user_id", userId)
+        .limit(1);
+      if (selErr) throw selErr;
+
+      const fullNameFromMeta = data.user?.user_metadata?.full_name ?? "";
+      const emailFromUser = data.user?.email ?? email;
+      if (!existing || existing.length === 0) {
+        const { error: insErr } = await supabase.from("students").insert({
+          auth_user_id: userId,
+          full_name: fullNameFromMeta,
+          email: emailFromUser,
+        });
+        if (insErr) throw insErr;
+      } else {
+        // If name was empty before confirmation, update it once we have metadata
+        if (fullNameFromMeta && fullNameFromMeta.trim().length > 0) {
+          await supabase
+            .from("students")
+            .update({ full_name: fullNameFromMeta })
+            .eq("auth_user_id", userId);
+        }
+      }
+
       router.push("/student-dashboard");
     } catch (err: any) {
       setErrorMsg(err?.message ?? "Unable to sign in.");

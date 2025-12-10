@@ -1,8 +1,58 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase";
 import Footer from "../../components/ui/Footer";
 
 export default function SignupPage() {
+  const router = useRouter();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"student" | "counselor">("student");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+
+  async function handleSignup() {
+    if (!isSupabaseConfigured) return;
+    setLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    setNeedsConfirmation(false);
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, role },
+          emailRedirectTo: `${window.location.origin}/loginpage`,
+        },
+      });
+      if (error) throw error;
+      setSuccessMsg("Success! Please check your email to confirm your account.");
+      setNeedsConfirmation(true);
+    } catch (err: any) {
+      setErrorMsg(err?.message ?? "Unable to sign up.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendConfirmation() {
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase.auth.resend({ type: "signup", email });
+      if (error) throw error;
+      setSuccessMsg("Confirmation email sent. Please check your inbox.");
+    } catch (err: any) {
+      setErrorMsg(err?.message ?? "Unable to resend confirmation email.");
+    }
+  }
   return (
     <div className="grid min-h-screen grid-rows-[auto,1fr,auto] bg-zinc-50">
       {/* Navbar */}
@@ -47,22 +97,103 @@ export default function SignupPage() {
             <form className="space-y-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-700">Name</label>
-                <input type="text" placeholder="Your name" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring" />
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-700">Email</label>
-                <input type="email" placeholder="you@example.com" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring" />
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-700">Password</label>
-                <input type="password" placeholder="Create a password" className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring" />
+                <input
+                  type="password"
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring"
+                />
               </div>
-              <button type="button" className="h-10 w-full rounded-full bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700">Create account</button>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700">Sign up as</label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as "student" | "counselor")}
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring"
+                >
+                  <option value="student">Student</option>
+                  <option value="counselor">Counselor</option>
+                </select>
+              </div>
+
+              {!isSupabaseConfigured && (
+                <div className="text-sm text-red-600">
+                  Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local.
+                </div>
+              )}
+              {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
+              {successMsg && <div className="text-sm text-green-600">{successMsg}</div>}
+              {!needsConfirmation ? (
+                <button
+                  type="button"
+                  onClick={handleSignup}
+                  disabled={loading || !isSupabaseConfigured}
+                  className="h-10 w-full rounded-full bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {loading ? "Creating..." : "Create account"}
+                </button>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-sm text-zinc-700">
+                    Please confirm your email first. After confirming, sign in to create your profile automatically.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resendConfirmation}
+                    className="h-10 w-full rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                  >
+                    Resend confirmation
+                  </button>
+                </div>
+              )}
               <div className="text-center text-sm text-zinc-600">Or sign up with</div>
               <div className="flex gap-2">
-                <button type="button" className="h-10 flex-1 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Microsoft</button>
-                <button type="button" className="h-10 flex-1 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Google</button>
+                <button
+                  type="button"
+                  className="h-10 flex-1 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                  disabled
+                  title="Microsoft provider not configured"
+                >
+                  Microsoft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorMsg(
+                      "Google sign up needs Google Cloud OAuth set up first. To keep things simple and free, please use email sign up."
+                    );
+                  }}
+                  className="h-10 flex-1 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                >
+                  Google
+                </button>
               </div>
+              {!needsConfirmation && (
+                <div className="text-center text-sm text-zinc-600">
+                  Didn’t get the email? <button type="button" onClick={resendConfirmation} className="text-blue-600 hover:underline">Resend confirmation</button>
+                </div>
+              )}
               <div className="text-center text-sm text-zinc-600">
                 Already have an account? <Link href="/loginpage" className="text-blue-600 hover:underline">Sign in</Link>
               </div>
