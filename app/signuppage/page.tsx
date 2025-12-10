@@ -37,7 +37,13 @@ export default function SignupPage() {
       setSuccessMsg("Success! Please check your email to confirm your account.");
       setNeedsConfirmation(true);
     } catch (err: any) {
-      setErrorMsg(err?.message ?? "Unable to sign up.");
+      const raw = err?.message ?? "Unable to sign up.";
+      const normalized = (raw || "").toLowerCase();
+      if (normalized.includes("already registered") || normalized.includes("exists") || normalized.includes("duplicate") || normalized.includes("user already")) {
+        setErrorMsg("That email is already in use. Please sign in or use a different email.");
+      } else {
+        setErrorMsg(raw);
+      }
     } finally {
       setLoading(false);
     }

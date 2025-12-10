@@ -4,8 +4,66 @@ import { Bell, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { LogoImage } from "../ui/Logo";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 
 export function CounselorNavbar() {
+  const [displayName, setDisplayName] = useState<string>("");
+  const [roleLabel, setRoleLabel] = useState<string>("Counselor");
+  const initials = displayName
+    ? displayName
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((s) => s[0]?.toUpperCase())
+        .join("")
+    : "";
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+    async function loadName() {
+      try {
+        if (!isSupabaseConfigured) return;
+        const supabase = getSupabaseClient();
+        const { data: auth } = await supabase.auth.getUser();
+        const userId = auth.user?.id;
+        if (!userId) return;
+        const userMeta = (auth.user?.user_metadata as any) || {};
+        const metaName = (userMeta?.full_name as string | undefined) || (userMeta?.name as string | undefined);
+        setRoleLabel("Counselor");
+
+        const { data, error } = await supabase
+          .from("counselors")
+          .select("full_name,email")
+          .eq("auth_user_id", userId)
+          .limit(1);
+        if (!error && data && data.length > 0) {
+          const name = data[0]?.full_name as string | undefined;
+          if (name && name.trim().length > 0) {
+            setDisplayName(name);
+            return;
+          }
+        }
+        if (metaName && metaName.trim().length > 0) {
+          setDisplayName(metaName);
+        }
+      } catch {
+        // silent fail
+      }
+    }
+    loadName();
+    if (isSupabaseConfigured) {
+      const supabase = getSupabaseClient();
+      const { data: sub } = supabase.auth.onAuthStateChange(() => {
+        loadName();
+      });
+      unsubscribe = () => sub.subscription.unsubscribe();
+    }
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   return (
     <header className="sticky top-0 z-30 border-b bg-white">
       <div className="mx-auto max-w-[1200px] px-4 md:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -30,10 +88,12 @@ export function CounselorNavbar() {
             <span className="absolute right-1 top-1 inline-block h-2 w-2 rounded-full bg-primary" />
           </button>
           <button className="flex items-center gap-3 rounded-full border px-3 py-2 hover:bg-muted transition-colors">
-            <div className="h-8 w-8 rounded-full bg-white" />
+            <div className="h-8 w-8 rounded-full bg-blue-600 text-white grid place-items-center text-sm font-semibold">
+              {initials}
+            </div>
             <div className="hidden sm:block text-left">
-              <div className="text-sm font-medium text-black">Sarah Johnson</div>
-              <div className="text-xs text-zinc-700">Student</div>
+              <div className="text-sm font-medium text-black">{displayName || ""}</div>
+              <div className="text-xs text-zinc-700">{roleLabel}</div>
             </div>
             <ChevronDown className="h-4 w-4 text-zinc-700" />
           </button>

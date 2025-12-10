@@ -12,6 +12,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [askNameOpen, setAskNameOpen] = useState(false);
+  const [tempName, setTempName] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   async function handleSignIn() {
     setLoading(true);
@@ -26,28 +29,31 @@ export default function LoginPage() {
       // Ensure profile row exists; create it on first login if missing.
       const { data: existing, error: selErr } = await supabase
         .from("students")
-        .select("student_id")
+        .select("student_id, full_name")
         .eq("auth_user_id", userId)
         .limit(1);
       if (selErr) throw selErr;
 
-      const fullNameFromMeta = data.user?.user_metadata?.full_name ?? "";
-      const emailFromUser = data.user?.email ?? email;
+      const fullNameFromMeta = (data.user?.user_metadata as any)?.full_name ?? "";
       if (!existing || existing.length === 0) {
         const { error: insErr } = await supabase.from("students").insert({
           auth_user_id: userId,
           full_name: fullNameFromMeta,
-          email: emailFromUser,
+          email,
         });
         if (insErr) throw insErr;
-      } else {
-        // If name was empty before confirmation, update it once we have metadata
-        if (fullNameFromMeta && fullNameFromMeta.trim().length > 0) {
-          await supabase
-            .from("students")
-            .update({ full_name: fullNameFromMeta })
-            .eq("auth_user_id", userId);
-        }
+      } else if (existing && fullNameFromMeta && fullNameFromMeta.trim().length > 0) {
+        // If row exists but name is empty, update with metadata name.
+        const { error: updErr } = await supabase
+          .from("students")
+          .update({ full_name: fullNameFromMeta })
+          .eq("auth_user_id", userId);
+        if (updErr) throw updErr;
+      } else if (existing && (!existing[0].full_name || existing[0].full_name.trim().length === 0)) {
+        // Ask user for a name before redirecting
+        setAskNameOpen(true);
+        setTempName("");
+        return; // wait for user to submit name
       }
 
       router.push("/student-dashboard");
@@ -55,6 +61,31 @@ export default function LoginPage() {
       setErrorMsg(err?.message ?? "Unable to sign in.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function saveDisplayName() {
+    if (!tempName.trim()) {
+      setErrorMsg("Please enter a name.");
+      return;
+    }
+    try {
+      setSavingName(true);
+      const supabase = getSupabaseClient();
+      const { data: session } = await supabase.auth.getUser();
+      const userId = session.user?.id;
+      if (!userId) throw new Error("No session.");
+      const { error } = await supabase
+        .from("students")
+        .update({ full_name: tempName.trim() })
+        .eq("auth_user_id", userId);
+      if (error) throw error;
+      setAskNameOpen(false);
+      router.push("/student-dashboard");
+    } catch (err: any) {
+      setErrorMsg(err?.message ?? "Could not save name.");
+    } finally {
+      setSavingName(false);
     }
   }
   return (
@@ -131,6 +162,39 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+
+      {askNameOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-6 shadow-md">
+            <h3 className="text-lg font-semibold text-zinc-900">What should we call you?</h3>
+            <p className="mt-1 text-sm text-zinc-600">Add a display name for your profile.</p>
+            <input
+              type="text"
+              value={tempName}
+              onChange={(e) => setTempName(e.target.value)}
+              placeholder="Your name"
+              className="mt-3 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring"
+            />
+            <div className="mt-4 flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => setAskNameOpen(false)}
+                className="h-9 rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveDisplayName}
+                disabled={savingName}
+                className="h-9 rounded-full bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              >
+                {savingName ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <Footer />
