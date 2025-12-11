@@ -19,7 +19,7 @@ export function BookingForm() {
   const [loadingCounselors, setLoadingCounselors] = React.useState(false);
   const [counselorError, setCounselorError] = React.useState<string | null>(null);
   const [sessionType, setSessionType] = React.useState("Individual Session (50 min)");
-  const [mode, setMode] = React.useState("online");
+  const [mode, setMode] = React.useState("in-person");
   const [date, setDate] = React.useState(""); // expected format YYYY-MM-DD or mm/dd/yyyy
   const [dateObj, setDateObj] = React.useState<Date | null>(null);
   const [notes, setNotes] = React.useState("");
@@ -196,6 +196,7 @@ export function BookingForm() {
             value={mode}
             onChange={(e) => setMode(e.target.value)}
           >
+            <option value="in-person">In-person</option>
             <option value="online">Online</option>
             <option value="virtual">Virtual</option>
           </select>

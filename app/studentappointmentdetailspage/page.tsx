@@ -28,7 +28,7 @@ export default function StudentAppointmentDetailsPage() {
         if (!stu?.student_id) throw new Error("No student profile found");
         const { data: appt, error: aErr } = await sb
           .from("appointments")
-          .select("appointment_id, appointment_date, appointment_time, session_type, status, notes, counselor_id")
+          .select("appointment_id, appointment_date, appointment_time, session_type, status, notes, counselor_id, mode")
           .eq("student_id", stu.student_id)
           .order("appointment_date", { ascending: false })
           .order("appointment_time", { ascending: false })
@@ -43,6 +43,31 @@ export default function StudentAppointmentDetailsPage() {
           .maybeSingle();
         if (cancel) return;
         setDetails({ appt, counselor });
+
+        // Subscribe to realtime updates for this appointment's status/mode
+        const channel = sb
+          .channel(`appt_${appt.appointment_id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'appointments',
+              filter: `appointment_id=eq.${appt.appointment_id}`,
+            },
+            (payload: any) => {
+              setDetails((prev: any) => {
+                if (!prev) return prev;
+                const newAppt = { ...prev.appt, ...payload.new };
+                return { ...prev, appt: newAppt };
+              });
+            }
+          )
+          .subscribe();
+
+        return () => {
+          try { sb.removeChannel(channel); } catch {}
+        };
       } catch (e: any) {
         if (!cancel) setError(e?.message || "Unable to load appointment details");
       } finally {
@@ -104,8 +129,19 @@ export default function StudentAppointmentDetailsPage() {
                     <div className="text-right">{details?.appt?.session_type?.includes("50") ? "50 minutes" : details?.appt?.session_type?.includes("30") ? "30 minutes" : ""}</div>
                     <div className="text-zinc-500">Type:</div>
                     <div className="text-right">{details?.appt?.session_type || "-"}</div>
+                    <div className="text-zinc-500">Mode:</div>
+                    <div className="text-right">{details?.appt?.mode || "-"}</div>
                     <div className="text-zinc-500">Status:</div>
-                    <div className="text-right"><span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">{details?.appt?.status || "pending"}</span></div>
+                    <div className="text-right">
+                      {details?.appt?.status === "confirmed" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                          <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6L9 17l-5-5" strokeWidth="2"/></svg>
+                          Approved by counselor
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">{details?.appt?.status || "pending"}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {/* Counselor Information */}
@@ -123,9 +159,20 @@ export default function StudentAppointmentDetailsPage() {
               </div>
               {/* Actions */}
               <div className="mt-6 flex flex-wrap gap-3">
-                <a href="/studentbookappointmentpage" className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Make an Appointment</a>
-                <button className="rounded-md border px-4 py-2 text-sm hover:bg-zinc-50">Reschedule</button>
-                <button className="rounded-md border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50">Cancel</button>
+                {/* Context-aware actions */}
+                {details?.appt ? (
+                  <>
+                    {/* If virtual/online and confirmed, show Join Meeting (future: add meeting_link column) */}
+                    {(["online","virtual"].includes(details.appt.mode)) && details.appt.status === "confirmed" ? (
+                      <button disabled className="rounded-md bg-zinc-200 px-4 py-2 text-sm text-zinc-600">Join link not available</button>
+                    ) : null}
+                    {/* Reschedule/Cancel always available for a booked appt */}
+                    <button className="rounded-md border px-4 py-2 text-sm hover:bg-zinc-50">Reschedule</button>
+                    <button className="rounded-md border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50">Cancel</button>
+                  </>
+                ) : (
+                  <a href="/studentbookappointmentpage" className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Make an Appointment</a>
+                )}
               </div>
             </div>
           </div>

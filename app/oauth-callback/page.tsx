@@ -31,61 +31,88 @@ export default function OAuthCallbackPage() {
         const metaRole = (user.user_metadata?.role as "student" | "counselor" | undefined) || undefined;
         const role = metaRole ?? initialRole;
         if (role === "student") {
-          // If profile doesn't exist, create it
+          // Ensure profile exists; if exists, backfill missing email/name
           const { data: existing } = await supabase
             .from("students")
-            .select("student_id")
+            .select("student_id, full_name, email")
             .eq("auth_user_id", user.id)
             .maybeSingle();
+          const fallbackName = (user.user_metadata as any)?.full_name || user.email?.split("@")[0] || "Student";
           if (!existing) {
-            const initialName = (user.user_metadata as any)?.full_name || user.email?.split("@")[0] || "Student";
             const { error: insErr } = await supabase.from("students").insert({
               auth_user_id: user.id,
-              full_name: initialName,
+              full_name: fallbackName,
               email: user.email,
             });
             if (insErr) throw insErr;
-            // Sync auth metadata from DB to keep menus consistent
-            try {
-              const { data: prof } = await supabase
+          } else {
+            const needsEmail = !existing.email && user.email;
+            const needsName = !existing.full_name || existing.full_name.trim().length === 0;
+            if (needsEmail || needsName) {
+              const { error: updErr } = await supabase
                 .from("students")
-                .select("full_name")
-                .eq("auth_user_id", user.id)
-                .limit(1);
-              const dbName = prof && prof[0]?.full_name;
-              if (dbName && dbName.trim().length > 0) {
-                await supabase.auth.updateUser({ data: { full_name: dbName } });
-              }
-            } catch {}
+                .update({
+                  email: needsEmail ? user.email : existing.email,
+                  full_name: needsName ? fallbackName : existing.full_name,
+                })
+                .eq("student_id", existing.student_id);
+              if (updErr) throw updErr;
+            }
           }
+          // Sync auth metadata full_name from DB
+          try {
+            const { data: prof } = await supabase
+              .from("students")
+              .select("full_name")
+              .eq("auth_user_id", user.id)
+              .limit(1);
+            const dbName = prof && prof[0]?.full_name;
+            if (dbName && dbName.trim().length > 0) {
+              await supabase.auth.updateUser({ data: { full_name: dbName } });
+            }
+          } catch {}
           router.replace("/student-dashboard");
         } else {
+          // Ensure counselor profile exists; if exists, backfill missing email/name
           const { data: existing } = await supabase
             .from("counselors")
-            .select("counselor_id")
+            .select("counselor_id, full_name, email")
             .eq("auth_user_id", user.id)
             .maybeSingle();
+          const fallbackName = (user.user_metadata as any)?.full_name || user.email?.split("@")[0] || "Counselor";
           if (!existing) {
-            const initialName = (user.user_metadata as any)?.full_name || user.email?.split("@")[0] || "Counselor";
             const { error: insErr } = await supabase.from("counselors").insert({
               auth_user_id: user.id,
-              full_name: initialName,
+              full_name: fallbackName,
               email: user.email,
             });
             if (insErr) throw insErr;
-            // Sync auth metadata from DB to keep menus consistent
-            try {
-              const { data: prof } = await supabase
+          } else {
+            const needsEmail = !existing.email && user.email;
+            const needsName = !existing.full_name || existing.full_name.trim().length === 0;
+            if (needsEmail || needsName) {
+              const { error: updErr } = await supabase
                 .from("counselors")
-                .select("full_name")
-                .eq("auth_user_id", user.id)
-                .limit(1);
-              const dbName = prof && prof[0]?.full_name;
-              if (dbName && dbName.trim().length > 0) {
-                await supabase.auth.updateUser({ data: { full_name: dbName } });
-              }
-            } catch {}
+                .update({
+                  email: needsEmail ? user.email : existing.email,
+                  full_name: needsName ? fallbackName : existing.full_name,
+                })
+                .eq("counselor_id", existing.counselor_id);
+              if (updErr) throw updErr;
+            }
           }
+          // Sync auth metadata full_name from DB
+          try {
+            const { data: prof } = await supabase
+              .from("counselors")
+              .select("full_name")
+              .eq("auth_user_id", user.id)
+              .limit(1);
+            const dbName = prof && prof[0]?.full_name;
+            if (dbName && dbName.trim().length > 0) {
+              await supabase.auth.updateUser({ data: { full_name: dbName } });
+            }
+          } catch {}
           router.replace("/counselor-dashboard");
         }
       } catch (e: any) {
