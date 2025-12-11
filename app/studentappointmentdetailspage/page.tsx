@@ -1,8 +1,72 @@
+"use client";
+
 import { Navbar } from "../../components/student-dashboard/Navbar";
 import Footer from "../../components/ui/Footer";
-// Simplified appointment details layout matching the provided mock
+import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import { format } from "date-fns";
+import * as React from "react";
 
 export default function StudentAppointmentDetailsPage() {
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [details, setDetails] = React.useState<any | null>(null);
+
+  React.useEffect(() => {
+    let cancel = false;
+    async function load() {
+      try {
+        if (!isSupabaseConfigured) throw new Error("Supabase not configured");
+        const sb = getSupabaseClient();
+        const { data: userRes, error: uErr } = await sb.auth.getUser();
+        if (uErr || !userRes.user) throw new Error(uErr?.message || "Not signed in");
+        const { data: stu, error: sErr } = await sb
+          .from("students")
+          .select("student_id")
+          .eq("auth_user_id", userRes.user.id)
+          .maybeSingle();
+        if (sErr) throw sErr;
+        if (!stu?.student_id) throw new Error("No student profile found");
+        const { data: appt, error: aErr } = await sb
+          .from("appointments")
+          .select("appointment_id, appointment_date, appointment_time, session_type, status, notes, counselor_id")
+          .eq("student_id", stu.student_id)
+          .order("appointment_date", { ascending: false })
+          .order("appointment_time", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (aErr) throw aErr;
+        if (!appt) throw new Error("No recent appointment found");
+        const { data: counselor } = await sb
+          .from("counselors")
+          .select("full_name, email")
+          .eq("counselor_id", appt.counselor_id)
+          .maybeSingle();
+        if (cancel) return;
+        setDetails({ appt, counselor });
+      } catch (e: any) {
+        if (!cancel) setError(e?.message || "Unable to load appointment details");
+      } finally {
+        if (!cancel) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancel = true; };
+  }, []);
+
+  const dateStr = details?.appt?.appointment_date
+    ? format(new Date(details.appt.appointment_date), "MMMM d, yyyy")
+    : "-";
+  const timeStr = details?.appt?.appointment_time
+    ? (() => {
+        const t = String(details.appt.appointment_time);
+        const h = parseInt(t.slice(0,2), 10);
+        const m = parseInt(t.slice(3,5), 10);
+        const ampm = h >= 12 ? "PM" : "AM";
+        const h12 = h % 12 === 0 ? 12 : h % 12;
+        return `${h12}:${String(m).padStart(2,"0")} ${ampm}`;
+      })()
+    : "-";
+
   return (
     <div className="grid min-h-screen grid-rows-[auto,1fr,auto]">
       <Navbar />
@@ -25,21 +89,23 @@ export default function StudentAppointmentDetailsPage() {
           <div className="rounded-2xl border bg-white shadow-sm overflow-hidden">
             <div className="bg-blue-600 px-6 py-3 text-white text-sm font-semibold rounded-t-2xl">Appointment Details</div>
             <div className="p-6">
+              {loading && <div className="text-sm text-zinc-600">Loading appointment…</div>}
+              {error && <div className="text-sm text-red-600">{error}</div>}
               <div className="grid gap-8 md:grid-cols-2">
                 {/* Session Information */}
                 <div>
                   <h3 className="text-sm font-semibold text-zinc-900">Session Information</h3>
                   <div className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
                     <div className="text-zinc-500">Date:</div>
-                    <div className="text-right">March 15, 2024</div>
+                    <div className="text-right">{dateStr}</div>
                     <div className="text-zinc-500">Time:</div>
-                    <div className="text-right">2:00 PM – 2:50 PM</div>
+                    <div className="text-right">{timeStr}</div>
                     <div className="text-zinc-500">Duration:</div>
-                    <div className="text-right">50 minutes</div>
+                    <div className="text-right">{details?.appt?.session_type?.includes("50") ? "50 minutes" : details?.appt?.session_type?.includes("30") ? "30 minutes" : ""}</div>
                     <div className="text-zinc-500">Type:</div>
-                    <div className="text-right">Individual Session</div>
+                    <div className="text-right">{details?.appt?.session_type || "-"}</div>
                     <div className="text-zinc-500">Status:</div>
-                    <div className="text-right"><span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Confirmed</span></div>
+                    <div className="text-right"><span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">{details?.appt?.status || "pending"}</span></div>
                   </div>
                 </div>
                 {/* Counselor Information */}
@@ -48,10 +114,9 @@ export default function StudentAppointmentDetailsPage() {
                   <div className="mt-3 flex items-start gap-3">
                     <div className="h-12 w-12 rounded-full bg-blue-100" />
                     <div className="text-sm">
-                      <div className="font-semibold">Dr. Sarah Johnson</div>
-                      <div className="text-zinc-500">Licensed Clinical Psychologist</div>
-                      <div className="text-zinc-500">Specializes in anxiety and depression</div>
-                      <div className="mt-1 text-zinc-700">⭐ 4.9 (127 reviews)</div>
+                      <div className="font-semibold">{details?.counselor?.full_name || "Counselor"}</div>
+                      <div className="text-zinc-500">{details?.counselor?.email || ""}</div>
+                      <div className="mt-1 text-zinc-700">&nbsp;</div>
                     </div>
                   </div>
                 </div>
