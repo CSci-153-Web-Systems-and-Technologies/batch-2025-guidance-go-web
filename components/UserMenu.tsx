@@ -40,6 +40,16 @@ export default function UserMenu({ name, email, avatarUrl }: UserMenuProps) {
     let unsubscribe: (() => void) | null = null;
     async function loadUser() {
       try {
+        // Skip auth calls during hard logout to avoid aborted fetch noise
+        if (typeof window !== "undefined" && localStorage.getItem("signingOut") === "1") {
+          // Clear the flag on the new page load
+          setTimeout(() => {
+            try {
+              localStorage.removeItem("signingOut");
+            } catch {}
+          }, 0);
+          return;
+        }
         if (!isSupabaseConfigured) return;
         const supabase = getSupabaseClient();
         const { data } = await supabase.auth.getSession();
@@ -64,6 +74,9 @@ export default function UserMenu({ name, email, avatarUrl }: UserMenuProps) {
     if (isSupabaseConfigured) {
       const supabase = getSupabaseClient();
       const { data: listener } = supabase.auth.onAuthStateChange((_event, sess) => {
+        if (typeof window !== "undefined" && localStorage.getItem("signingOut") === "1") {
+          return;
+        }
         const u = sess?.user ?? null;
         if (u) {
           const meta: any = u.user_metadata || {};
@@ -87,9 +100,19 @@ export default function UserMenu({ name, email, avatarUrl }: UserMenuProps) {
   async function handleSignOut() {
     try {
       setSigningOut(true);
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("signingOut", "1");
+        }
+      } catch {}
       const supabase = isSupabaseConfigured ? getSupabaseClient() : null;
       if (supabase) {
-        await supabase.auth.signOut();
+        try {
+          await supabase.auth.signOut();
+        } catch (e) {
+          // Network hiccups can throw; proceed to hard redirect regardless
+          console.warn("Supabase signOut error", e);
+        }
       } else {
         // Optional fallback: try next-auth if present
         let maybeSignOut: ((opts?: any) => Promise<any>) | undefined;
@@ -109,8 +132,13 @@ export default function UserMenu({ name, email, avatarUrl }: UserMenuProps) {
     } finally {
       setOpen(false);
       setSigningOut(false);
+      // Use hard redirect to fully clear any stale state
       try {
-        router.replace("/");
+        if (typeof window !== "undefined") {
+          window.location.href = "/";
+        } else {
+          router.replace("/");
+        }
       } catch {}
     }
   }

@@ -1,25 +1,137 @@
 "use client";
 
 import * as React from "react";
+import DatePickerPopover from "@/components/DatePickerPopover";
+import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 
 type TimeSlot = {
   id: string;
   label: string;
 };
 
-export function BookingForm() {
-  const [counselor, setCounselor] = React.useState("Dr. Sarah Johnson - Individual Therapy");
-  const [sessionType, setSessionType] = React.useState("Individual Session (50 min)");
-  const [date, setDate] = React.useState("");
-  const [notes, setNotes] = React.useState("");
-  const [selectedSlot, setSelectedSlot] = React.useState<string | null>("2:00 PM");
+type Counselor = { counselor_id: string; full_name: string; email: string | null };
 
-  const timeSlots: TimeSlot[] = [
-    { id: "9:00", label: "9:00 AM" },
-    { id: "10:00", label: "10:00 AM" },
-    { id: "14:00", label: "2:00 PM" },
-    { id: "15:30", label: "3:30 PM" },
-  ];
+export function BookingForm() {
+  const [counselorId, setCounselorId] = React.useState<string | null>(null);
+  const [counselors, setCounselors] = React.useState<Counselor[]>([]);
+  const [loadingCounselors, setLoadingCounselors] = React.useState(false);
+  const [counselorError, setCounselorError] = React.useState<string | null>(null);
+  const [sessionType, setSessionType] = React.useState("Individual Session (50 min)");
+  const [date, setDate] = React.useState(""); // expected format YYYY-MM-DD or mm/dd/yyyy
+  const [dateObj, setDateObj] = React.useState<Date | null>(null);
+  const [notes, setNotes] = React.useState("");
+  const [selectedSlotId, setSelectedSlotId] = React.useState<string | null>(null);
+  const [availableSlots, setAvailableSlots] = React.useState<TimeSlot[]>([]);
+  const [loadingSlots, setLoadingSlots] = React.useState(false);
+  const [slotError, setSlotError] = React.useState<string | null>(null);
+
+  function to12h(t: string) {
+    const [hStr, mStr] = t.split(":");
+    let h = parseInt(hStr, 10);
+    const m = parseInt(mStr || "0", 10);
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12;
+    if (h === 0) h = 12;
+    const mm = m.toString().padStart(2, "0");
+    return `${h}:${mm} ${ampm}`;
+  }
+
+  // Normalize date to YYYY-MM-DD if user typed mm/dd/yyyy
+  function normalizeDate(input: string) {
+    if (!input) return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input; // already ISO
+    const m = input.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) {
+      const mm = m[1].padStart(2, "0");
+      const dd = m[2].padStart(2, "0");
+      const yyyy = m[3];
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    return input;
+  }
+
+  function dateToISO(d: Date) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function formatMMDDYYYY(d: Date) {
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  }
+
+  // Load availability for selected counselor + date
+  React.useEffect(() => {
+    let cancel = false;
+    async function loadSlots() {
+      setSlotError(null);
+      setAvailableSlots([]);
+      setSelectedSlotId(null);
+      if (!isSupabaseConfigured) return;
+      if (!counselorId || !date) return;
+      try {
+        setLoadingSlots(true);
+        const supabase = getSupabaseClient();
+        const isoDate = normalizeDate(date);
+        const { data, error } = await supabase
+          .from("availability")
+          .select("availability_id, start_time, end_time")
+          .eq("counselor_id", counselorId)
+          .eq("available_date", isoDate)
+          .order("start_time");
+        if (error) throw error;
+        if (cancel) return;
+        const slots: TimeSlot[] = (data || []).map((r: any) => ({
+          id: r.availability_id as string,
+          label: to12h((r.start_time as string).slice(0,5)),
+        }));
+        setAvailableSlots(slots);
+        if (slots.length > 0) setSelectedSlotId(slots[0].id);
+      } catch (e: any) {
+        if (!cancel) setSlotError(e?.message ?? "Unable to load availability.");
+      } finally {
+        if (!cancel) setLoadingSlots(false);
+      }
+    }
+    loadSlots();
+    return () => { cancel = true; };
+  }, [counselorId, date]);
+
+  // Load counselors from Supabase
+  React.useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      if (!isSupabaseConfigured) return;
+      try {
+        setLoadingCounselors(true);
+        setCounselorError(null);
+        const supabase = getSupabaseClient();
+        const { data, error } = await supabase
+          .from("counselors")
+          .select("counselor_id, full_name, email")
+          .order("full_name", { ascending: true });
+        if (error) throw error;
+        if (cancelled) return;
+        setCounselors((data ?? []) as any);
+        // Pick first counselor by default if none selected yet
+        if (!counselorId && data && data.length > 0) {
+          setCounselorId(data[0].counselor_id as string);
+        }
+      } catch (e: any) {
+        if (!cancelled) setCounselorError(e?.message ?? "Unable to load counselors.");
+      } finally {
+        if (!cancelled) setLoadingCounselors(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
@@ -33,13 +145,21 @@ export function BookingForm() {
           <label className="text-sm font-medium text-zinc-700">Select Counselor</label>
           <select
             className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring"
-            value={counselor}
-            onChange={(e) => setCounselor(e.target.value)}
+            value={counselorId ?? ""}
+            onChange={(e) => setCounselorId(e.target.value || null)}
           >
-            <option>Dr. Sarah Johnson - Individual Therapy</option>
-            <option>Dr. Kevin Chan - Group Therapy</option>
-            <option>Dr. Amy Kim - Study Habits</option>
+            {!isSupabaseConfigured && <option value="">Supabase not configured</option>}
+            {loadingCounselors && <option value="">Loading counselors…</option>}
+            {!loadingCounselors && counselors.length === 0 && (
+              <option value="">No counselors available</option>
+            )}
+            {counselors.map((c) => (
+              <option key={c.counselor_id} value={c.counselor_id}>
+                {c.full_name} {c.email ? `- ${c.email}` : ""}
+              </option>
+            ))}
           </select>
+          {counselorError && <div className="text-xs text-red-600">{counselorError}</div>}
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-zinc-700">Session Type</label>
@@ -59,42 +179,30 @@ export function BookingForm() {
         <div className="space-y-2">
           <label className="text-sm font-medium text-zinc-700">Select Date &amp; Time</label>
           <div className="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="mm/dd/yyyy"
-              className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-200 focus:ring"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-            <button type="button" className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700">📅</button>
+            <div className="flex-1">
+              <DatePickerPopover
+                value={dateObj ?? undefined}
+                onConfirm={(d) => {
+                  setDateObj(d);
+                  setDate(formatMMDDYYYY(d));
+                }}
+              />
+            </div>
           </div>
         </div>
-        <div className="flex gap-2">
-          {timeSlots.slice(0, 2).map((slot) => (
+        <div className="flex gap-2 flex-wrap items-center min-h-[40px]">
+          {loadingSlots && <span className="text-sm text-zinc-600">Loading slots…</span>}
+          {!loadingSlots && availableSlots.length === 0 && (
+            <span className="text-sm text-zinc-600">No slots for this date</span>
+          )}
+          {availableSlots.map((slot) => (
             <button
               key={slot.id}
               type="button"
-              onClick={() => setSelectedSlot(slot.label)}
+              onClick={() => setSelectedSlotId(slot.id)}
               className={
                 "h-10 min-w-[96px] rounded-lg border px-4 text-sm " +
-                (selectedSlot === slot.label
-                  ? "border-blue-600 bg-blue-600 text-white"
-                  : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50")
-              }
-            >
-              {slot.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          {timeSlots.slice(2).map((slot) => (
-            <button
-              key={slot.id}
-              type="button"
-              onClick={() => setSelectedSlot(slot.label)}
-              className={
-                "h-10 min-w-[96px] rounded-lg border px-4 text-sm " +
-                (selectedSlot === slot.label
+                (selectedSlotId === slot.id
                   ? "border-blue-600 bg-blue-600 text-white"
                   : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50")
               }
@@ -123,6 +231,48 @@ export function BookingForm() {
         </div>
         <button
           type="button"
+          onClick={async () => {
+            try {
+              if (!isSupabaseConfigured) throw new Error("Supabase not configured");
+              if (!counselorId) throw new Error("Please select a counselor");
+              const isoDate = normalizeDate(date);
+              if (!isoDate) throw new Error("Please enter a date (mm/dd/yyyy)");
+              if (!selectedSlotId) throw new Error("Please select a time slot");
+              const supabase = getSupabaseClient();
+              // Resolve student_id of logged-in user
+              const { data: userRes, error: uErr } = await supabase.auth.getUser();
+              if (uErr || !userRes.user) throw new Error(uErr?.message || "Not signed in");
+              const { data: stu, error: sErr } = await supabase
+                .from("students")
+                .select("student_id")
+                .eq("auth_user_id", userRes.user.id)
+                .maybeSingle();
+              if (sErr) throw sErr;
+              if (!stu?.student_id) throw new Error("No student profile found");
+              // Lookup the selected availability to get precise times
+              const { data: slot } = await supabase
+                .from("availability")
+                .select("start_time, end_time")
+                .eq("availability_id", selectedSlotId)
+                .maybeSingle();
+              const start_time = slot?.start_time || null;
+              const end_time = slot?.end_time || null;
+              // Attempt to insert into appointments (adjust columns to your schema if different)
+              const { error: insErr } = await supabase.from("appointments").insert({
+                student_id: stu.student_id,
+                counselor_id: counselorId,
+                date: isoDate,
+                start_time,
+                end_time,
+                notes,
+                session_type: sessionType,
+              } as any);
+              if (insErr) throw insErr;
+              alert("Booking confirmed!");
+            } catch (e: any) {
+              alert(e?.message || "Unable to confirm booking. Please check your database schema.");
+            }
+          }}
           className="h-10 rounded-full bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
         >
           Confirm Booking

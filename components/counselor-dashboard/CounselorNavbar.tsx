@@ -25,6 +25,12 @@ export function CounselorNavbar() {
     let unsubscribe: (() => void) | null = null;
     async function loadName() {
       try {
+        if (typeof window !== "undefined" && localStorage.getItem("signingOut") === "1") {
+          setTimeout(() => {
+            try { localStorage.removeItem("signingOut"); } catch {}
+          }, 0);
+          return;
+        }
         if (!isSupabaseConfigured) return;
         const supabase = getSupabaseClient();
         const { data: auth } = await supabase.auth.getUser();
@@ -58,6 +64,7 @@ export function CounselorNavbar() {
     if (isSupabaseConfigured) {
       const supabase = getSupabaseClient();
       const { data: sub } = supabase.auth.onAuthStateChange(() => {
+        if (typeof window !== "undefined" && localStorage.getItem("signingOut") === "1") return;
         loadName();
       });
       unsubscribe = () => sub.subscription.unsubscribe();
