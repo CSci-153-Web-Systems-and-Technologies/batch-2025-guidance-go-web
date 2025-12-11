@@ -40,12 +40,13 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-10">
+      <HeroCard />
       {/* Outer container to match mock: rounded, bordered, subtle shadow */}
       <section className="mx-auto w-full max-w-6xl rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         {/* Welcome + Calendar */}
         <div className="grid gap-8 md:grid-cols-[1.2fr_1fr]">
           <div>
-            <h2 className="mb-4 text-lg font-semibold text-zinc-900">Welcome back, Sarah!</h2>
+            <h2 className="mb-4 text-lg font-semibold text-zinc-900">Welcome back!</h2>
             <NextAppointmentCard appointment={nextAppointment} compact />
           </div>
           <div>

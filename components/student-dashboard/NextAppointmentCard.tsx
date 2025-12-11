@@ -38,12 +38,11 @@ export function NextAppointmentCard({
           <div className="text-xs opacity-90">{appointment.dateLabel}</div>
         </div>
       </div>
-      <div className="flex items-center justify-end gap-3 px-5 py-4">
-        <button className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-white hover:bg-blue-700">
-          <Video className="h-4 w-4" />
-          Join Session
+      <div className="px-5 py-5">
+        <button className="w-full inline-flex items-center justify-center gap-3 rounded-xl bg-blue-600 px-5 py-4 text-white text-base font-semibold hover:bg-blue-700 shadow-sm">
+          <Video className="h-5 w-5" />
+          Make an Appointment
         </button>
-        <button className="rounded-md border px-3 py-2 hover:bg-muted">Reschedule</button>
       </div>
     </div>
   );
