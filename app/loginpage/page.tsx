@@ -26,17 +26,22 @@ export default function LoginPage() {
       const userId = data.user?.id;
       if (!userId) throw new Error("No user session after sign in.");
 
-      // Ensure profile row exists; create it on first login if missing.
+      // Determine role and target table
+      const metaRole = (data.user?.user_metadata?.role as "student" | "counselor" | undefined) || "student";
+      const table = metaRole === "counselor" ? "counselors" : "students";
+      const idColumn = metaRole === "counselor" ? "counselor_id" : "student_id";
+
+      // Ensure profile row exists in the correct table; create it on first login if missing.
       const { data: existing, error: selErr } = await supabase
-        .from("students")
-        .select("student_id, full_name")
+        .from(table)
+        .select(`${idColumn}, full_name`)
         .eq("auth_user_id", userId)
         .limit(1);
       if (selErr) throw selErr;
 
       const fullNameFromMeta = (data.user?.user_metadata as any)?.full_name ?? "";
       if (!existing || existing.length === 0) {
-        const { error: insErr } = await supabase.from("students").insert({
+        const { error: insErr } = await supabase.from(table).insert({
           auth_user_id: userId,
           full_name: fullNameFromMeta,
           email,
@@ -46,7 +51,7 @@ export default function LoginPage() {
         // Only update if DB name is empty; never overwrite a non-empty name
         if (fullNameFromMeta && fullNameFromMeta.trim().length > 0) {
           const { error: updErr } = await supabase
-            .from("students")
+            .from(table)
             .update({ full_name: fullNameFromMeta })
             .eq("auth_user_id", userId);
           if (updErr) throw updErr;
@@ -69,7 +74,7 @@ export default function LoginPage() {
       // Sync auth user metadata full_name from DB so menus show consistent name
       try {
         const { data: prof } = await supabase
-          .from("students")
+          .from(table)
           .select("full_name")
           .eq("auth_user_id", userId)
           .limit(1);
@@ -81,7 +86,8 @@ export default function LoginPage() {
         // non-blocking
       }
 
-      router.push("/student-dashboard");
+      // Route based on role (from the signed-in user's metadata)
+      router.push(metaRole === "counselor" ? "/counselor-dashboard" : "/student-dashboard");
     } catch (err: any) {
       setErrorMsg(err?.message ?? "Unable to sign in.");
     } finally {
@@ -100,8 +106,10 @@ export default function LoginPage() {
       const { data: session } = await supabase.auth.getUser();
       const userId = session.user?.id;
       if (!userId) throw new Error("No session.");
+      const metaRole2 = (session.user?.user_metadata?.role as "student" | "counselor" | undefined) || "student";
+      const table2 = metaRole2 === "counselor" ? "counselors" : "students";
       const { error } = await supabase
-        .from("students")
+        .from(table2)
         .update({ full_name: tempName.trim() })
         .eq("auth_user_id", userId);
       if (error) throw error;
@@ -110,7 +118,7 @@ export default function LoginPage() {
         await supabase.auth.updateUser({ data: { full_name: tempName.trim() } });
       } catch {}
       setAskNameOpen(false);
-      router.push("/student-dashboard");
+      router.push(metaRole2 === "counselor" ? "/counselor-dashboard" : "/student-dashboard");
     } catch (err: any) {
       setErrorMsg(err?.message ?? "Could not save name.");
     } finally {

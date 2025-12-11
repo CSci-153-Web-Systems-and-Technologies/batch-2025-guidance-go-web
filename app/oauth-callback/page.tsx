@@ -7,7 +7,9 @@ import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase";
 export default function OAuthCallbackPage() {
   const router = useRouter();
   const search = useSearchParams();
-  const role = (search.get("role") as "student" | "counselor") || "student";
+  // Prefer role from the authenticated user's metadata; fallback to URL param; lastly default to student
+  // We will re-evaluate this after fetching the session to avoid misclassification
+  const initialRole = (search.get("role") as "student" | "counselor") || "student";
   const [message, setMessage] = useState("Finishing sign in…");
 
   useEffect(() => {
@@ -25,6 +27,9 @@ export default function OAuthCallbackPage() {
       const user = userRes.user;
 
       try {
+        // Determine role reliably: prefer auth user metadata.role
+        const metaRole = (user.user_metadata?.role as "student" | "counselor" | undefined) || undefined;
+        const role = metaRole ?? initialRole;
         if (role === "student") {
           // If profile doesn't exist, create it
           const { data: existing } = await supabase
@@ -88,7 +93,7 @@ export default function OAuthCallbackPage() {
       }
     }
     run();
-  }, [router, role]);
+  }, [router, initialRole]);
 
   return (
     <div className="flex min-h-dvh items-center justify-center">

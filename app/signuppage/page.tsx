@@ -52,9 +52,14 @@ export default function SignupPage() {
   async function resendConfirmation() {
     try {
       const supabase = getSupabaseClient();
-      const { error } = await supabase.auth.resend({ type: "signup", email });
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/loginpage` },
+      } as any);
       if (error) throw error;
       setSuccessMsg("Confirmation email sent. Please check your inbox.");
+      setNeedsConfirmation(true);
     } catch (err: any) {
       setErrorMsg(err?.message ?? "Unable to resend confirmation email.");
     }
