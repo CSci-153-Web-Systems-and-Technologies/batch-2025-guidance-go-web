@@ -42,18 +42,43 @@ export default function LoginPage() {
           email,
         });
         if (insErr) throw insErr;
-      } else if (existing && fullNameFromMeta && fullNameFromMeta.trim().length > 0) {
-        // If row exists but name is empty, update with metadata name.
-        const { error: updErr } = await supabase
-          .from("students")
-          .update({ full_name: fullNameFromMeta })
-          .eq("auth_user_id", userId);
-        if (updErr) throw updErr;
       } else if (existing && (!existing[0].full_name || existing[0].full_name.trim().length === 0)) {
+        // Only update if DB name is empty; never overwrite a non-empty name
+        if (fullNameFromMeta && fullNameFromMeta.trim().length > 0) {
+          const { error: updErr } = await supabase
+            .from("students")
+            .update({ full_name: fullNameFromMeta })
+            .eq("auth_user_id", userId);
+          if (updErr) throw updErr;
+        } else {
+          // Ask user for a name before redirecting
+          setAskNameOpen(true);
+          setTempName("");
+          return; // wait for user to submit name
+        }
+      } else if (existing && existing[0].full_name && existing[0].full_name.trim().length > 0) {
+        // DB already has a non-empty name; do not overwrite
+        // proceed without changes
+      } else {
         // Ask user for a name before redirecting
         setAskNameOpen(true);
         setTempName("");
         return; // wait for user to submit name
+      }
+
+      // Sync auth user metadata full_name from DB so menus show consistent name
+      try {
+        const { data: prof } = await supabase
+          .from("students")
+          .select("full_name")
+          .eq("auth_user_id", userId)
+          .limit(1);
+        const dbName = prof && prof[0]?.full_name;
+        if (dbName && dbName.trim().length > 0) {
+          await supabase.auth.updateUser({ data: { full_name: dbName } });
+        }
+      } catch {
+        // non-blocking
       }
 
       router.push("/student-dashboard");
@@ -80,6 +105,10 @@ export default function LoginPage() {
         .update({ full_name: tempName.trim() })
         .eq("auth_user_id", userId);
       if (error) throw error;
+      // Also update auth metadata for consistency
+      try {
+        await supabase.auth.updateUser({ data: { full_name: tempName.trim() } });
+      } catch {}
       setAskNameOpen(false);
       router.push("/student-dashboard");
     } catch (err: any) {

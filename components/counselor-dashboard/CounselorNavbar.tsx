@@ -6,10 +6,12 @@ import { LogoImage } from "../ui/Logo";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import UserMenu from "@/components/UserMenu";
 
 export function CounselorNavbar() {
   const [displayName, setDisplayName] = useState<string>("");
   const [roleLabel, setRoleLabel] = useState<string>("Counselor");
+  const [email, setEmail] = useState<string>("");
   const initials = displayName
     ? displayName
         .split(" ")
@@ -28,6 +30,7 @@ export function CounselorNavbar() {
         const { data: auth } = await supabase.auth.getUser();
         const userId = auth.user?.id;
         if (!userId) return;
+        setEmail(auth.user?.email ?? "");
         const userMeta = (auth.user?.user_metadata as any) || {};
         const metaName = (userMeta?.full_name as string | undefined) || (userMeta?.name as string | undefined);
         setRoleLabel("Counselor");
@@ -87,16 +90,9 @@ export function CounselorNavbar() {
             <Bell className="h-5 w-5 text-zinc-700" />
             <span className="absolute right-1 top-1 inline-block h-2 w-2 rounded-full bg-primary" />
           </button>
-          <button className="flex items-center gap-3 rounded-full border px-3 py-2 hover:bg-muted transition-colors">
-            <div className="h-8 w-8 rounded-full bg-blue-600 text-white grid place-items-center text-sm font-semibold">
-              {initials}
-            </div>
-            <div className="hidden sm:block text-left">
-              <div className="text-sm font-medium text-black">{displayName || ""}</div>
-              <div className="text-xs text-zinc-700">{roleLabel}</div>
-            </div>
-            <ChevronDown className="h-4 w-4 text-zinc-700" />
-          </button>
+          <div className="flex items-center gap-2 rounded-full border px-2 py-1">
+            <UserMenu name={displayName || undefined} email={email || undefined} />
+          </div>
         </div>
       </div>
       <div className="h-[3px] w-full bg-blue-500/60" />

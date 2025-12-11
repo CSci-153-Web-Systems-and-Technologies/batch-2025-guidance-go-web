@@ -33,12 +33,25 @@ export default function OAuthCallbackPage() {
             .eq("auth_user_id", user.id)
             .maybeSingle();
           if (!existing) {
+            const initialName = (user.user_metadata as any)?.full_name || user.email?.split("@")[0] || "Student";
             const { error: insErr } = await supabase.from("students").insert({
               auth_user_id: user.id,
-              full_name: (user.user_metadata as any)?.full_name || user.email?.split("@")[0] || "Student",
+              full_name: initialName,
               email: user.email,
             });
             if (insErr) throw insErr;
+            // Sync auth metadata from DB to keep menus consistent
+            try {
+              const { data: prof } = await supabase
+                .from("students")
+                .select("full_name")
+                .eq("auth_user_id", user.id)
+                .limit(1);
+              const dbName = prof && prof[0]?.full_name;
+              if (dbName && dbName.trim().length > 0) {
+                await supabase.auth.updateUser({ data: { full_name: dbName } });
+              }
+            } catch {}
           }
           router.replace("/student-dashboard");
         } else {
@@ -48,12 +61,25 @@ export default function OAuthCallbackPage() {
             .eq("auth_user_id", user.id)
             .maybeSingle();
           if (!existing) {
+            const initialName = (user.user_metadata as any)?.full_name || user.email?.split("@")[0] || "Counselor";
             const { error: insErr } = await supabase.from("counselors").insert({
               auth_user_id: user.id,
-              full_name: (user.user_metadata as any)?.full_name || user.email?.split("@")[0] || "Counselor",
+              full_name: initialName,
               email: user.email,
             });
             if (insErr) throw insErr;
+            // Sync auth metadata from DB to keep menus consistent
+            try {
+              const { data: prof } = await supabase
+                .from("counselors")
+                .select("full_name")
+                .eq("auth_user_id", user.id)
+                .limit(1);
+              const dbName = prof && prof[0]?.full_name;
+              if (dbName && dbName.trim().length > 0) {
+                await supabase.auth.updateUser({ data: { full_name: dbName } });
+              }
+            } catch {}
           }
           router.replace("/counselor-dashboard");
         }
