@@ -13,10 +13,11 @@ export default function Home() {
     let cancelled = false;
     async function checkAndRedirect() {
       try {
+        // Ensure Supabase is properly configured before calling auth
         if (!isSupabaseConfigured) return;
         const sb = getSupabaseClient();
-        const { data: sess } = await sb.auth.getSession();
-        const user = sess.session?.user;
+        const { data } = await sb.auth.getSession();
+        const user = data?.session?.user ?? null;
         if (!user) return;
         const { data: stu } = await sb
           .from("students")
@@ -30,6 +31,8 @@ export default function Home() {
         // ignore
       }
     }
+    // Prefetch dashboard to minimize redirect flicker
+    try { router.prefetch("/student-dashboard"); } catch {}
     checkAndRedirect();
     return () => { cancelled = true; };
   }, [router]);

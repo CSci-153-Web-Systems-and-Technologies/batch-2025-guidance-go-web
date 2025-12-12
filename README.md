@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GuidanceGo
 
-## Getting Started
+Fast & secure counseling scheduler for students and counselors.
 
-First, run the development server:
+## Overview
+- Role‑aware experience: students book and manage sessions; counselors approve/cancel and view schedules.
+- Home behavior: unauthenticated users see Login/Sign Up; signed‑in students auto‑redirect to Student Dashboard; counselors use their dashboard route.
+- Clean, responsive UI with Tailwind; Supabase Auth and Postgres backend.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+- Student: book sessions (in‑person or virtual), view stacked details, reschedule/cancel.
+- Counselor: pending approvals list, schedule calendar, multi‑appointment drawer, per‑button loading states.
+- Mode/status normalization: UI shows “virtual” while DB stores `online`; statuses use `Pending`, `Confirmed`, `Cancelled`.
+
+## Tech Stack
+- Next.js 16 (App Router), React, TypeScript, Tailwind CSS
+- Supabase (Postgres, Auth, RLS), optional realtime updates
+- Turbopack dev server; ESLint/Prettier; Vercel‑ready
+
+## Data Model Notes
+- `appointments.mode`: `in-person` or `online` (displayed as “virtual”).
+- `appointments.status`: exactly `Pending`, `Confirmed`, `Cancelled` (DB check constraint).
+- `students` and `counselors` linked via `auth_user_id`.
+
+## Project Structure
+```
+app/
+ ├─ page.tsx (auth landing + student redirect)
+ ├─ student-dashboard/
+ ├─ studentbookappointmentpage/
+ ├─ studentappointmentdetailspage/
+ ├─ counselor-dashboard/
+ ├─ aboutpage/ servicespage/ contactpage/
+components/
+ ├─ student-dashboard/
+ ├─ counselor-dashboard/
+ ├─ ui/
+lib/
+ └─ supabase/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
+1) Install dependencies
+```bash
+npm install
+```
+2) Environment (.env.local)
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
+```
+3) Run
+```bash
+npm run dev
+```
+4) Build + start
+```bash
+npm run build
+npm start
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment
+- Set env vars on Vercel (URL, anon key).
+- Ensure RLS policies match production.
+- Use `/oauth-callback` for Supabase auth redirect flow.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Troubleshooting
+- Status constraint errors: match exact strings; map UI “virtual” → DB `online`.
+- Multiple lockfiles warning: if using npm, delete `C:\Users\Admin\yarn.lock`.
+- OAuth callback: `useSearchParams()` is wrapped in `<Suspense>`.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+MIT
