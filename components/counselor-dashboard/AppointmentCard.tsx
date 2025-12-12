@@ -14,7 +14,7 @@ export type Appointment = {
   status?: "Pending" | "Approved" | "Canceled";
 };
 
-export function AppointmentCard({ appt, onApprove, onCancel, onReschedule, busy }: { appt: Appointment; onApprove?: (id?: string) => void; onCancel?: (id?: string) => void; onReschedule?: (id?: string) => void; busy?: boolean }) {
+export function AppointmentCard({ appt, onApprove, onCancel, onReschedule, busyAction }: { appt: Appointment; onApprove?: (id?: string) => void; onCancel?: (id?: string) => void; onReschedule?: (id?: string) => void; busyAction?: "approve" | "cancel" }) {
   return (
     <div className="rounded-xl border bg-white p-4">
       <div className="flex items-start justify-between">
@@ -61,9 +61,21 @@ export function AppointmentCard({ appt, onApprove, onCancel, onReschedule, busy 
         )}
       </div>
       <div className="mt-4 flex gap-3">
-        <button disabled={busy} onClick={() => onApprove?.(appt.appointmentId)} className={`rounded-md px-3 py-2 text-white ${busy ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"}`}>{busy ? "Approving…" : "Approve"}</button>
-        <button disabled={busy} onClick={() => onReschedule?.(appt.appointmentId)} className="rounded-md border px-3 py-2 hover:bg-muted">Reschedule</button>
-        <button disabled={busy} onClick={() => onCancel?.(appt.appointmentId)} className={`rounded-md px-3 py-2 ${busy ? "bg-red-200 text-red-700" : "bg-red-100 text-red-700 hover:bg-red-200"}`}>Cancel</button>
+        <button
+          disabled={!!busyAction}
+          onClick={() => onApprove?.(appt.appointmentId)}
+          className={`rounded-md px-3 py-2 text-white ${busyAction === 'approve' ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"}`}
+        >
+          {busyAction === 'approve' ? "Approving…" : "Approve"}
+        </button>
+        <button disabled={!!busyAction} onClick={() => onReschedule?.(appt.appointmentId)} className="rounded-md border px-3 py-2 hover:bg-muted">Reschedule</button>
+        <button
+          disabled={!!busyAction}
+          onClick={() => onCancel?.(appt.appointmentId)}
+          className={`rounded-md px-3 py-2 ${busyAction === 'cancel' ? "bg-red-200 text-red-700" : "bg-red-100 text-red-700 hover:bg-red-200"}`}
+        >
+          {busyAction === 'cancel' ? "Cancelling…" : "Cancel"}
+        </button>
       </div>
     </div>
   );

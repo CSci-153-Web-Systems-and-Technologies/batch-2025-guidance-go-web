@@ -12,7 +12,7 @@ export function CounselorDashboard() {
   const [stats, setStats] = React.useState({ pending: 0, scheduled: 0 });
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
-  const [actionBusy, setActionBusy] = React.useState<boolean>(false);
+  const [actionBusyById, setActionBusyById] = React.useState<Record<string, "approve" | "cancel" | undefined>>({});
   const [scheduledAppts, setScheduledAppts] = React.useState<ScheduledItem[]>([]);
 
   React.useEffect(() => {
@@ -50,7 +50,7 @@ export function CounselorDashboard() {
             students:students ( student_id, full_name, email )
           `)
           .eq("counselor_id", counselorId)
-          .eq("status", "pending")
+          .in("status", ["pending", "Pending"]) 
           .order("appointment_date")
           .order("appointment_time")
           .limit(50);
@@ -123,7 +123,7 @@ export function CounselorDashboard() {
             timeLabel: fmtTime(a.appointment_time as any),
             topic: a.notes || a.session_type || "",
             type: sessionType || undefined,
-            mode: (a as any).mode || undefined,
+            mode: ((a as any).mode === 'online' ? 'virtual' : (a as any).mode) || undefined,
             durationLabel,
             status: "Pending",
           } satisfies Appointment;
@@ -133,7 +133,7 @@ export function CounselorDashboard() {
           .from("appointments")
           .select("appointment_id", { count: "exact", head: true })
           .eq("counselor_id", counselorId)
-          .eq("status", "pending");
+          .in("status", ["pending", "Pending"]);
         const { data: scheduledRows, error: sErr } = await sb
           .from("appointments")
           .select(`
@@ -147,7 +147,7 @@ export function CounselorDashboard() {
             students:students ( student_id, full_name, email )
           `)
           .eq("counselor_id", counselorId)
-          .eq("status", "confirmed")
+          .in("status", ["confirmed", "Confirmed"]) 
           .order("appointment_date")
           .order("appointment_time")
           .limit(200);
@@ -159,7 +159,7 @@ export function CounselorDashboard() {
           return {
             date: String((r as any).appointment_date),
             time: (r as any).appointment_time ?? null,
-            mode: (r as any).mode ?? null,
+            mode: ((r as any).mode === 'online' ? 'virtual' : (r as any).mode) ?? null,
             studentName,
             studentEmail,
             type: (r as any).session_type || undefined,
@@ -239,41 +239,55 @@ export function CounselorDashboard() {
                 onApprove={async (id?: string) => {
                   if (!id) return;
                   try {
-                    setActionBusy(true);
+                    setActionBusyById(prev => ({ ...prev, [id!]: "approve" }));
                     const sb = getSupabaseClient();
-                    const { error: updErr } = await sb
-                      .from("appointments")
-                      .update({ status: "confirmed" })
-                      .eq("appointment_id", id);
-                    if (updErr) throw updErr;
+                    const approveCandidates = ["Confirmed", "confirmed", "Approved", "approved"];
+                    let lastErr: any = null;
+                    for (const val of approveCandidates) {
+                      const { error: updErr } = await sb
+                        .from("appointments")
+                        .update({ status: val })
+                        .eq("appointment_id", id);
+                      if (!updErr) { lastErr = null; break; }
+                      lastErr = updErr;
+                      if (!/23514|check constraint/i.test(updErr.message || "")) break;
+                    }
+                    if (lastErr) throw lastErr;
                     // Optimistically update UI
                     setPendingItems(prev => prev.filter(p => p.appointmentId === undefined || p.appointmentId !== id));
                     setStats(s => ({ ...s, pending: Math.max(0, (s.pending ?? 1) - 1), scheduled: (s.scheduled ?? 0) + 1 }));
                   } catch (e) {
                     setError((e as any)?.message || "Unable to approve appointment");
                   } finally {
-                    setActionBusy(false);
+                    setActionBusyById(prev => ({ ...prev, [id!]: undefined }));
                   }
                 }}
                 onCancel={async (id?: string) => {
                   if (!id) return;
                   try {
-                    setActionBusy(true);
+                    setActionBusyById(prev => ({ ...prev, [id!]: "cancel" }));
                     const sb = getSupabaseClient();
-                    const { error: updErr } = await sb
-                      .from("appointments")
-                      .update({ status: "canceled" })
-                      .eq("appointment_id", id);
-                    if (updErr) throw updErr;
+                    const cancelCandidates = ["Cancelled", "Canceled", "cancelled", "canceled"];
+                    let lastErr: any = null;
+                    for (const val of cancelCandidates) {
+                      const { error: updErr } = await sb
+                        .from("appointments")
+                        .update({ status: val })
+                        .eq("appointment_id", id);
+                      if (!updErr) { lastErr = null; break; }
+                      lastErr = updErr;
+                      if (!/23514|check constraint/i.test(updErr.message || "")) break;
+                    }
+                    if (lastErr) throw lastErr;
                     setPendingItems(prev => prev.filter(p => p.appointmentId === undefined || p.appointmentId !== id));
                     setStats(s => ({ ...s, pending: Math.max(0, (s.pending ?? 1) - 1) }));
                   } catch (e) {
                     setError((e as any)?.message || "Unable to cancel appointment");
                   } finally {
-                    setActionBusy(false);
+                    setActionBusyById(prev => ({ ...prev, [id!]: undefined }));
                   }
                 }}
-                busy={actionBusy}
+                busyActionById={actionBusyById}
               />
             )}
           </div>

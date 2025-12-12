@@ -1,8 +1,38 @@
+"use client";
 import Image from "next/image";
 import { LogoImage } from "../components/ui/Logo";
 import Footer from "../components/ui/Footer";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    let cancelled = false;
+    async function checkAndRedirect() {
+      try {
+        if (!isSupabaseConfigured) return;
+        const sb = getSupabaseClient();
+        const { data: sess } = await sb.auth.getSession();
+        const user = sess.session?.user;
+        if (!user) return;
+        const { data: stu } = await sb
+          .from("students")
+          .select("student_id")
+          .eq("auth_user_id", user.id)
+          .maybeSingle();
+        if (!cancelled && stu?.student_id) {
+          router.replace("/student-dashboard");
+        }
+      } catch {
+        // ignore
+      }
+    }
+    checkAndRedirect();
+    return () => { cancelled = true; };
+  }, [router]);
   return (
     <div className="grid min-h-screen grid-rows-[auto,1fr,auto] bg-zinc-50">
       {/* Navbar */}
@@ -18,31 +48,22 @@ export default function Home() {
             <a href="/servicespage" className="hover:text-zinc-900">Services</a>
             <a href="/contactpage" className="hover:text-zinc-900">Contact</a>
           </nav>
-          <div className="flex items-center gap-2">
-            <a href="/loginpage" className="rounded-full px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100">Login</a>
-            <a href="/signuppage" className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Sign Up</a>
-          </div>
+          {/* Top-right auth buttons removed per request */}
         </div>
       </header>
 
-      {/* Hero */}
-      <main className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center px-6 py-16">
-        <div className="flex h-[420px] w-full items-center justify-center">
-          <div className="text-center">
-            <div className="mx-auto mb-4">
-              <LogoImage width={120} height={120} priority className="mx-auto" />
-            </div>
-            <h1 className="text-5xl font-bold text-blue-600">GuidanceGo</h1>
-            <p className="mt-2 text-lg text-zinc-600">Fast &amp; Secure Counseling Scheduler</p>
+      {/* Auth-only landing */}
+      <main className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center px-6 py-24">
+        <div className="text-center">
+          <div className="mx-auto mb-4">
+            <LogoImage width={120} height={120} priority className="mx-auto" />
           </div>
+          <h1 className="text-4xl font-bold text-blue-600">Welcome to GuidanceGo</h1>
+          <p className="mt-2 text-sm text-zinc-600">Please sign in or create an account to continue.</p>
         </div>
-
-        {/* Quick Access Buttons */}
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/student-dashboard">Student Dashboard</a>
-          <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/studentappointmentdetailspage">Appointment Details</a>
-          <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/studentbookappointmentpage">Book Appointment</a>
-          <a className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50" href="/counselor-dashboard">Counselor Dashboard</a>
+        <div className="mt-8 flex flex-col gap-3 w-full max-w-sm">
+          <a href="/loginpage" className="rounded-md bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700">Log In</a>
+          <a href="/signuppage" className="rounded-md border px-4 py-2 text-center text-sm font-medium hover:bg-zinc-50">Sign Up</a>
         </div>
       </main>
 

@@ -197,7 +197,6 @@ export function BookingForm() {
             onChange={(e) => setMode(e.target.value)}
           >
             <option value="in-person">In-person</option>
-            <option value="online">Online</option>
             <option value="virtual">Virtual</option>
           </select>
         </div>
@@ -290,18 +289,27 @@ export function BookingForm() {
               const start_time = slot?.start_time || null;
               const end_time = slot?.end_time || null;
               // Insert into appointments using your schema: appointment_date + appointment_time
-              const payload: any = {
+              // Map UI mode to DB-allowed values to satisfy check constraint
+              const normalizedMode = mode === "virtual" ? "online" : mode;
+              const payloadBase: any = {
                 student_id: stu.student_id,
                 counselor_id: counselorId,
                 appointment_date: isoDate,
                 appointment_time: start_time, // store the slot start
                 session_type: sessionType,
                 notes,
-                mode,
-                status: "pending", // optional default
+                mode: normalizedMode,
+                status: "Pending", // placeholder, will normalize
               };
-              const { error: insErr } = await supabase.from("appointments").insert(payload);
-              if (insErr) throw insErr;
+              const statusCandidates = ["Pending", "pending"];
+              let lastErr: any = null;
+              for (const s of statusCandidates) {
+                const { error: insErr } = await supabase.from("appointments").insert({ ...payloadBase, status: s });
+                if (!insErr) { lastErr = null; break; }
+                lastErr = insErr;
+                if (!/23514|check constraint/i.test(insErr.message || "")) break;
+              }
+              if (lastErr) throw lastErr;
               alert("Booking confirmed!");
               router.push("/studentappointmentdetailspage");
             } catch (e: any) {

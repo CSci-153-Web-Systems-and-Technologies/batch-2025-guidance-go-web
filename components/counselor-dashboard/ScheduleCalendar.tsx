@@ -63,7 +63,7 @@ export function ScheduleCalendar({ items }: { items: ScheduledItem[] }) {
               <li key={idx} className="rounded-lg border bg-zinc-50 p-3 text-zinc-700">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center rounded-md bg-blue-100 px-2 py-0.5 text-xs font-medium">{formatTime(i.time)}</span>
-                  <span className="inline-flex items-center rounded-md bg-purple-100 px-2 py-0.5 text-xs font-medium">{i.mode ?? "in-person"}</span>
+                  <span className="inline-flex items-center rounded-md bg-purple-100 px-2 py-0.5 text-xs font-medium">{i.mode === 'online' ? 'virtual' : (i.mode ?? 'in-person')}</span>
                   {i.type && (
                     <span className="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium">{i.type}</span>
                   )}
@@ -125,7 +125,7 @@ export function ScheduleCalendar({ items }: { items: ScheduledItem[] }) {
                         <div className="text-zinc-600">Type:</div>
                         <div className="text-right text-zinc-800">{current.type ?? '—'}</div>
                         <div className="text-zinc-600">Mode:</div>
-                        <div className="text-right text-zinc-800">{current.mode ?? 'in-person'}</div>
+                        <div className="text-right text-zinc-800">{current.mode === 'online' ? 'virtual' : (current.mode ?? 'in-person')}</div>
                         <div className="text-zinc-600">Status:</div>
                         <div className="text-right">
                           <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">✓ Approved by counselor</span>

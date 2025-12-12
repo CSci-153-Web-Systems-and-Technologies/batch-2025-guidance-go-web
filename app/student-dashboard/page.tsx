@@ -27,9 +27,9 @@ export default function DashboardPage() {
   ];
 
   const quickActions = [
-    { title: "Book Session", icon: "Calendar" as const, href: "#" },
+    { title: "Book Session", icon: "Calendar" as const, href: "/studentbookappointmentpage" },
+    { title: "My Appointments", icon: "BookOpen" as const, href: "/studentappointmentdetailspage" },
     { title: "Join Meeting", icon: "Video" as const, href: "#" },
-    { title: "Resources", icon: "BookOpen" as const, href: "#" },
     { title: "Messages", icon: "MessageSquare" as const, href: "#" },
   ];
 

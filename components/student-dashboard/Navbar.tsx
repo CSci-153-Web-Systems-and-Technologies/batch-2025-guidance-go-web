@@ -4,6 +4,7 @@ import { Bell, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { LogoImage } from "../ui/Logo";
 import Link from "next/link";
+import { RoleAwareHomeLink } from "@/components/RoleAwareHomeLink";
 import { useEffect, useState } from "react";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import UserMenu from "@/components/UserMenu";
@@ -93,7 +94,7 @@ export function Navbar() {
             <span className="font-semibold text-blue-600">GuidanceGo</span>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link className="text-zinc-700 hover:text-black" href="/">Home</Link>
+            <RoleAwareHomeLink className="text-zinc-700 hover:text-black">Home</RoleAwareHomeLink>
             <Link className="text-zinc-700 hover:text-black" href="/aboutpage">About</Link>
             <Link className="text-zinc-700 hover:text-black" href="/servicespage">Services</Link>
             <Link className="text-zinc-700 hover:text-black" href="/contactpage">Contact</Link>
