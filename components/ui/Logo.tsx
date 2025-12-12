@@ -12,7 +12,7 @@ export type LogoProps = Omit<React.ComponentProps<typeof Image>, "src" | "alt"> 
   fallbackSrc?: string;
 };
 
-export function LogoImage({ pngSrc = "/Logo.png", fallbackSrc = "/logo.svg", ...imgProps }: LogoProps) {
+export function LogoImage({ pngSrc = "/logo.png", fallbackSrc = "/next.svg", ...imgProps }: LogoProps) {
   const [src, setSrc] = useState<string>(pngSrc);
   return (
     <Image
