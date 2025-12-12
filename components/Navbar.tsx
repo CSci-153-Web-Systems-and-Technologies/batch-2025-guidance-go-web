@@ -31,8 +31,8 @@ export default function Navbar() {
     load();
     if (isSupabaseConfigured) {
       const supabase = getSupabaseClient();
-      const { data: listener } = supabase.auth.onAuthStateChange((_event, sess) => {
-        const u = sess?.session?.user ?? null;
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, sess) => {
+          const u = sess?.user ?? null;
         if (u) {
           const meta: any = u.user_metadata || {};
           setUser({

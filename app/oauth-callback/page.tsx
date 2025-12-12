@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseClient, isSupabaseConfigured } from "../../lib/supabase";
 
-export default function OAuthCallbackPage() {
+function CallbackContent() {
   const router = useRouter();
   const search = useSearchParams();
-  // Prefer role from the authenticated user's metadata; fallback to URL param; lastly default to student
-  // We will re-evaluate this after fetching the session to avoid misclassification
   const initialRole = (search.get("role") as "student" | "counselor") || "student";
   const [message, setMessage] = useState("Finishing sign in…");
 
@@ -126,5 +124,13 @@ export default function OAuthCallbackPage() {
     <div className="flex min-h-dvh items-center justify-center">
       <div className="rounded-xl border bg-white p-6 shadow-sm text-sm text-zinc-700">{message}</div>
     </div>
+  );
+}
+
+export default function OAuthCallbackPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-dvh items-center justify-center"><div className="rounded-xl border bg-white p-6 shadow-sm text-sm text-zinc-700">Finishing sign in…</div></div>}>
+      <CallbackContent />
+    </Suspense>
   );
 }

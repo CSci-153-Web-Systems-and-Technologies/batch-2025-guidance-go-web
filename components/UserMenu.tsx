@@ -113,19 +113,6 @@ export default function UserMenu({ name, email, avatarUrl }: UserMenuProps) {
           // Network hiccups can throw; proceed to hard redirect regardless
           console.warn("Supabase signOut error", e);
         }
-      } else {
-        // Optional fallback: try next-auth if present
-        let maybeSignOut: ((opts?: any) => Promise<any>) | undefined;
-        try {
-          // @ts-ignore - optional dependency; module may not exist at build time
-          const mod = await import("next-auth/react");
-          maybeSignOut = mod?.signOut as any;
-        } catch {
-          maybeSignOut = undefined;
-        }
-        if (typeof maybeSignOut === "function") {
-          await maybeSignOut({ redirect: false });
-        }
       }
     } catch (err) {
       console.error("Sign out failed", err);
