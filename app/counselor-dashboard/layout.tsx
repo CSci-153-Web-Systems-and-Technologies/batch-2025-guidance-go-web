@@ -1,9 +1,29 @@
+"use client";
 import type { ReactNode } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import { CounselorNavbar } from "../../components/counselor-dashboard/CounselorNavbar";
 import { CounselorSidebar } from "../../components/counselor-dashboard/CounselorSidebar";
 import Footer from "../../components/ui/Footer";
 
 export default function CounselorDashboardLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  useEffect(() => {
+    let cancel = false;
+    async function guard() {
+      try {
+        if (!isSupabaseConfigured) return;
+        const sb = getSupabaseClient();
+        const { data: userRes } = await sb.auth.getUser();
+        if (!userRes?.user && !cancel) {
+          router.replace("/loginpage");
+        }
+      } catch {}
+    }
+    guard();
+    return () => { cancel = true; };
+  }, [router]);
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <CounselorNavbar />
