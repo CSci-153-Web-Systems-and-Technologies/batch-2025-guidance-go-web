@@ -16,8 +16,9 @@ export default function Home() {
         // Ensure Supabase is properly configured before calling auth
         if (!isSupabaseConfigured) return;
         const sb = getSupabaseClient();
-        const { data } = await sb.auth.getSession();
-        const user = data?.session?.user ?? null;
+        // Use getUser to strictly require an authenticated user
+        const { data: userRes } = await sb.auth.getUser();
+        const user = userRes?.user ?? null;
         if (!user) return;
         const { data: stu } = await sb
           .from("students")
@@ -67,6 +68,11 @@ export default function Home() {
         <div className="mt-8 flex flex-col gap-3 w-full max-w-sm">
           <a href="/loginpage" className="rounded-md bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700">Log In</a>
           <a href="/signuppage" className="rounded-md border px-4 py-2 text-center text-sm font-medium hover:bg-zinc-50">Sign Up</a>
+          {/* Developer testing shortcuts */}
+          <div className="mt-4 grid grid-cols-1 gap-2">
+            <a href="/student-dashboard" className="rounded-md border px-4 py-2 text-center text-xs font-medium text-zinc-700 hover:bg-zinc-50">Go to Student Dashboard (Test)</a>
+            <a href="/counselor-dashboard" className="rounded-md border px-4 py-2 text-center text-xs font-medium text-zinc-700 hover:bg-zinc-50">Go to Counselor Dashboard (Test)</a>
+          </div>
         </div>
       </main>
 
