@@ -16,8 +16,9 @@ export default function Home() {
         // Ensure Supabase is properly configured before calling auth
         if (!isSupabaseConfigured) return;
         const sb = getSupabaseClient();
-        const { data } = await sb.auth.getSession();
-        const user = data?.session?.user ?? null;
+        // Use getUser to strictly require an authenticated user
+        const { data: userRes } = await sb.auth.getUser();
+        const user = userRes?.user ?? null;
         if (!user) return;
         const { data: stu } = await sb
           .from("students")
